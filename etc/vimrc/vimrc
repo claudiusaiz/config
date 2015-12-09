@@ -1,0 +1,455 @@
+" To use it, copy it to
+"     for Unix and OS/2:  ~/.vimrc
+"	      for Amiga:  s:.vimrc
+"  for MS-DOS and Win32:  $VIM\_vimrc
+"	    for OpenVMS:  sys$login:.vimrc
+
+" When started as "evim", evim.vim will already have done these settings.
+if v:progname =~? "evim"
+  finish
+endif
+
+" Use Vim settings, rather then Vi settings (much better!).
+" This must be first, because it changes other options as a side effect.
+set nocompatible
+
+" allow backspacing over everything in insert mode
+set backspace=indent,eol,start
+
+" smartindent is more flexible than cindent
+set autoindent
+set smartindent
+
+" these settings are local to buffer
+" set the tab size to 4
+set tabstop=4
+set softtabstop=4 shiftwidth=4
+set expandtab
+
+set writebackup		" keep backup when editing
+set history=500		" keep 500 lines of command line history
+set ruler		    " show the cursor position all the time
+set showcmd		    " display incomplete commands
+set incsearch		" do incremental searching
+
+" show line numbers
+set number
+
+" new commands added
+set esckeys         " allow cursor keys in insert mode
+set showmatch       " show matching parens/brackets
+
+" set backup and swap directories
+set bdir=~/.vim/bkp/
+set dir=~/.vim/swap/
+set undodir=~/.vim/undo/
+
+" Switch syntax highlighting on, when the terminal has colors
+" Also switch on highlighting the last used search pattern.
+if &t_Co > 2 || has("gui_running")
+  syntax on
+  set hlsearch
+endif
+
+" enable the new filetype and indent plugins
+filetype on
+
+" when splitting windows, the new active windows should be at the right or
+" below (depending on vsp or sp)
+set splitright
+set splitbelow
+
+" Only do this part when compiled with support for autocommands.
+if has("autocmd")
+
+  " Enable file type detection.
+  " Use the default filetype settings, so that mail gets 'tw' set to 72,
+  " 'cindent' is on in C files, etc.
+  " Also load indent files, to automatically do language-dependent indenting.
+  filetype plugin indent on
+
+  " For all text files set 'textwidth' to 80 characters.
+  "autocmd FileType text setlocal textwidth=80
+
+  " When editing a file, always jump to the last known cursor position.
+  " Don't do it when the position is invalid or when inside an event handler
+  " (happens when dropping a file on gvim).
+  autocmd BufReadPost *
+    \ if line("'\"") > 0 && line("'\"") <= line("$") |
+    \   exe "normal g`\"" |
+    \ endif
+
+endif " has("autocmd")
+
+" Make TAB-completion work more bash-like in the command line.
+set wildmenu
+set wildmode=list:longest,full
+
+" maximum height of command-line
+set cmdheight=2
+
+" the last windows should always have a status line
+set laststatus=2
+
+""" wrapping options """
+" don't wrap lines because long lines of code will ruin the whole alignment
+set nowrap
+"set lbr
+
+" list trailing spaces, extending/preceding characters when nowrap is on, and
+" list the tab as plain spaces
+set list lcs=trail:~,extends:$,precedes:^,tab:\ \ 
+
+" enable syntax highlighting
+syntax enable
+
+""" themes """
+if has("gui_running")
+    " for the summerfruit256 theme
+    "set background=light
+    "set t_Co=256
+    "color summerfruit256
+
+    " other nice themes: pablo, slate
+    color evening
+
+    " netrw options
+    let w:netrw_liststyle=3
+    let g:netrw_browse_split = 3
+    let g:netrw_altv = 1
+    let g:netrw_winsize = 20
+else
+    " in console mode, this is nicer than evening
+    color delek
+endif
+
+" opens the .h file if you're in a .c file or vice-versa
+function! OpenComplementFile()
+    let l:files = []
+    let l:size = 0
+    let l:file_name = expand('%:t')
+    let l:file_ext = expand('%:e')
+
+    " based on what type of file this is, compose the complement file name
+    if l:file_ext == "c"
+        let l:comp_file_name = expand('%:t:r') . ".h"
+    elseif l:file_ext == "h"
+        let l:comp_file_name = expand('%:t:r') . ".c"
+    elseif l:file_ext == "cpp"
+        let l:comp_file_name = expand('%:t:r') . ".hpp"
+    elseif l:file_ext == "hpp"
+        let l:comp_file_name = expand('%:t:r') . ".cpp"
+    else
+        echo "This function works only for the following types of files: .c, .cpp, .h, .hpp"
+        return
+    endif
+
+    for item in g:file_list
+        "if stridx(item, l:comp_file_name) != -1
+        if item =~ l:comp_file_name . "$"
+            let l:size += 1
+            echo l:size . "\t" . item
+            call add(l:files, item)
+        endif
+    endfor
+    if l:size == 0
+        echo "'".l:comp_file_name."' not found"
+        return
+    elseif l:size == 1
+        execute ":vsp " . l:files[0]
+    else
+        let l:input=input("Which ? (CR=nothing)\n")
+        if strlen(l:input)==0
+            return
+        endif
+        if strlen(substitute(l:input, "[0-9]", "", "g"))>0
+            echo "Not a number"
+            return
+        endif
+        if l:input < 1 || l:input > l:size
+            echo "Out of range"
+            return
+        endif
+        execute ":vsp " . l:files[l:input - 1]
+    endif
+endfunction
+
+" On Ctrl + Tab open the complement of the file
+nmap <C-Tab> :call OpenComplementFile()<CR>
+
+" don't unload buffers when abandoned, most probably they will be accessed
+" later
+" Note: there might be abandoned buffers with unsaved changes, careful with :q!
+set hidden
+
+" ignore the case when searching a pattern
+set ignorecase
+" ignore the 'ignorecase' option if the pattern contains upper case characters
+set smartcase
+
+" Make Ctrl-P go forward in the jumplist history.
+noremap <C-P> <C-I>
+
+" It's so frustrating to modify a file and then realize you don't have sudo...
+cmap w!! %!sudo tee > /dev/null %
+
+" map Space and z+Space to open the tag of the symbol in a vertical or
+" horizontal split
+nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
+nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
+
+" This tests to see if vim was configured with the '--enable-cscope' option
+" when it was compiled.  If it wasn't, time to recompile vim...
+if has("cscope")
+    " use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
+    set cscopetag
+
+    " check ctags for definition of a symbol before checking cscope
+    set csto=1
+
+    " add any cscope database in current directory
+    if filereadable("cscope.out")
+        cs add cscope.out
+    " else add the database pointed to by environment variable
+    elseif $CSCOPE_DB != ""
+        cs add $CSCOPE_DB
+    endif
+
+    " show msg when any other cscope db added
+    set cscopeverbose
+
+    " The following maps all invoke one of the following cscope search types:
+    "
+    "   's'   symbol: find all references to the token under cursor
+    "   'g'   global: find global definition(s) of the token under cursor
+    "   'c'   calls:  find all calls to the function name under cursor
+    "   't'   text:   find all instances of the text under cursor
+    "   'e'   egrep:  egrep search for the word under cursor
+    "   'f'   file:   open the filename under cursor
+    "   'i'   includes: find files that include the filename under cursor
+    "   'd'   called: find functions that function under cursor calls
+    "
+    " Below are three sets of the maps: one set that just jumps to your
+    " search result, one that splits the existing vim window horizontally and
+    " diplays your search result in the new window, and one that does the same
+    " thing, but does a vertical split instead (vim 6 only).
+    "
+    " I've used CTRL-\ and CTRL-@ as the starting keys for these maps, as it's
+    " unlikely that you need their default mappings (CTRL-\'s default use is
+    " as part of CTRL-\ CTRL-N typemap, which basically just does the same
+    " thing as hitting 'escape': CTRL-@ doesn't seem to have any default use).
+    " If you don't like using 'CTRL-@' or CTRL-\, , you can change some or all
+    " of these maps to use other keys.  One likely candidate is 'CTRL-_'
+    " (which also maps to CTRL-/, which is easier to type).  By default it is
+    " used to switch between Hebrew and English keyboard mode.
+    "
+    " All of the maps involving the <cfile> macro use '^<cfile>$': this is so
+    " that searches over '#include <time.h>" return only references to
+    " 'time.h', and not 'sys/time.h', etc. (by default cscope will return all
+    " files that contain 'time.h' as part of their name).
+    "
+    " To do the first type of search, hit 'CTRL-\', followed by one of the
+    " cscope search types above (s,g,c,t,e,f,i,d).  The result of your cscope
+    " search will be displayed in the current window.  You can use CTRL-T to
+    " go back to where you were before the search.
+    "
+
+    nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-\>t :cs find t <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-\>e :cs find e <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-\>f :cs find f <C-R>=expand("<cfile>")<CR><CR>
+    nmap <C-\>i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+    nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>
+
+    " Using CTRL-@ then a search type makes the vim window split vertically
+    " (vim 6 and up only), with search result displayed in the new window.
+    "
+    " (Note: earlier versions of vim may not have the :scs command, but it
+    " can be simulated roughly via:
+    "    nmap <C-@>s <C-W><C-S> :cs find s <C-R>=expand("<cword>")<CR><CR>
+
+    nmap <C-@>s :vert scs find s <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@>g :vert scs find g <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@>c :vert scs find c <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@>t :vert scs find t <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@>e :vert scs find e <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@>f :vert scs find f <C-R>=expand("<cfile>")<CR><CR>
+    nmap <C-@>i :vert scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+    nmap <C-@>d :vert scs find d <C-R>=expand("<cword>")<CR><CR>
+
+    " Hitting CTRL-@ *twice* before the search type does a horizontal
+    " split instead of a vertical one
+
+    nmap <C-@><C-@>s :scs find s <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@><C-@>g :scs find g <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@><C-@>c :scs find c <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@><C-@>t :scs find t <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@><C-@>e :scs find e <C-R>=expand("<cword>")<CR><CR>
+    nmap <C-@><C-@>f :scs find f <C-R>=expand("<cfile>")<CR><CR>
+    nmap <C-@><C-@>i :scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
+    nmap <C-@><C-@>d :scs find d <C-R>=expand("<cword>")<CR><CR>
+
+    " By default Vim will only wait 1 second for each keystroke in a mapping.
+    " You may find that too short with the above typemaps.  If so, you should
+    " either turn off mapping timeouts via 'notimeout'.
+    "
+    "set notimeout
+    "
+    " Or, you can keep timeouts, by uncommenting the timeoutlen line below,
+    " with your own personal favorite value (in milliseconds):
+    "
+    "set timeoutlen=4000
+    "
+    " Either way, since mapping timeout settings by default also set the
+    " timeouts for multicharacter 'keys codes' (like <F1>), you should also
+    " set ttimeout and ttimeoutlen: otherwise, you will experience strange
+    " delays as vim waits for a keystroke after you hit ESC (it will be
+    " waiting to see if the ESC is actually part of a key code like <F1>).
+    "
+    "set ttimeout
+    "
+    " personally, I find a tenth of a second to work well for key code
+    " timeouts. If you experience problems and have a slow terminal or network
+    " connection, set it higher.  If you don't set ttimeoutlen, the value for
+    " timeoutlent (default: 1000 = 1 second, which is sluggish) is used.
+    "
+    "set ttimeoutlen=100
+
+
+endif
+
+" show the current function declaration in the status bar when hitting \ + F
+function! ShowFuncName()
+    let lnum = line(".")
+    let col = col(".")
+    echohl ModeMsg
+    echo getline(search("^[^ \t#/]\\{2}.*[^:]\s*$", 'bW'))
+    echohl None
+    call search("\\%" . lnum . "l" . "\\%" . col . "c")
+endfun
+:nnoremap <Leader>F :call ShowFuncName()<CR>
+
+""" OmniCppComplete settings """
+let OmniCpp_NamespaceSearch = 2     " search namespaces everywhere
+let OmniCpp_GlobalScopeSearch = 1   " search in the global scope
+let OmniCpp_ShowAccess = 1          " show access information (+ public, # protected, - private)
+let OmniCpp_ShowPrototypeInAbbr = 1 " show function parameters
+let OmniCpp_MayCompleteDot = 1      " autocomplete after .
+let OmniCpp_MayCompleteArrow = 1    " autocomplete after ->
+let OmniCpp_MayCompleteScope = 1    " autocomplete after ::
+let OmniCpp_DefaultNamespaces = ["std", "_GLIBCXX_STD"]
+let OmniCpp_ShowScopeInAbbr = 1     " show the scope in abbreviation
+
+" automatically open and close the popup menu / preview window
+au CursorMovedI,InsertLeave * if pumvisible() == 0|silent! pclose|endif
+set completeopt=menuone,menu,longest,preview
+
+" uncomment when you are ready to deal with hjkl instead of the arrow keys :)
+" nnoremap <left> :vertical resize -5<cr>
+" nnoremap <right> :vertical resize +5<cr>
+" nnoremap <up> :resize -5<cr>
+" nnoremap <down> :resize +5<cr>
+
+" press Ctrl-\ + R to reindex cscope and ctags databases
+" For the moment, don't reindex the ctags database because easytags is used
+" nmap <C-\>R :!(ctags -R --sort=yes --c-kinds=+p --fields=+S . &) && cscope -qbR& <CR>
+nmap <C-\>R :!cscope -qbR <CR>
+
+" press \ + B to delete inactive buffers
+function! DeleteInactiveBufs()
+    "From tabpagebuflist() help, get a list of all buffers in all tabs
+    let tablist = []
+    for i in range(tabpagenr('$'))
+        call extend(tablist, tabpagebuflist(i + 1))
+    endfor
+
+    "Below originally inspired by Hara Krishna Dara and Keith Roberts
+    "http://tech.groups.yahoo.com/group/vim/message/56425
+    let nWipeouts = 0
+    for i in range(1, bufnr('$'))
+        if bufexists(i) && !getbufvar(i,"&mod") && index(tablist, i) == -1
+        "bufno exists AND isn't modified AND isn't in the list of buffers open in windows and tabs
+            silent exec 'bwipeout' i
+            let nWipeouts = nWipeouts + 1
+        endif
+    endfor
+    echomsg nWipeouts . ' buffer(s) wiped out'
+endfunction
+:nnoremap <Leader>B :call DeleteInactiveBufs()<CR>
+
+" press \ + r to replace word
+:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+
+" command 'Find <filename>' will search for the given filename
+" Note: for easily searching file names of which you don't know the complete
+"       name, <filename> doesn't have to completely match the searched file;
+"       for example, calling 'Find time.' might find the following files:
+"       - time.c
+"       - time.c
+"       - some_other_time.doc
+let g:file_list=split(system("find . -type f"))
+function! Find(name)
+    let l:files = []
+    let l:size = 0
+    for item in g:file_list
+        if stridx(item, a:name) != -1
+            let l:size += 1
+            echo l:size . "\t" . item
+            call add(l:files, item)
+        endif
+    endfor
+    if l:size == 0
+        echo "'".a:name."' not found"
+        return
+    elseif l:size == 1
+        execute ":e " . l:files[0]
+    else
+        let l:input=input("Which ? (CR=nothing)\n")
+        if strlen(l:input)==0
+            return
+        endif
+        if strlen(substitute(l:input, "[0-9]", "", "g"))>0
+            echo "Not a number"
+            return
+        endif
+        if l:input < 1 || l:input > l:size
+            echo "Out of range"
+            return
+        endif
+        execute ":e " . l:files[l:input - 1]
+    endif
+endfunction
+command! -nargs=1 Find :call Find("<args>")
+
+" executing the find command every time we search for a file is very
+" time consuming, thus if new files were added after you started vim,
+" you need to call ReindexFind() to manually reindex the file list
+" TODO optimize this in order to be fast and not require manual labor :)
+function! ReindexFind()
+    let g:file_list=split(system("find . -type f"))
+endfunction
+
+" automatically regenerate cscope db from time to time
+" au BufWritePost *.c,*.h silent!
+"             \ !sleep 60 & |
+"             \ !ctags -R --sort=yes --c-kinds=+p --fields=+S . & |
+"             \ !cscope -qbR &
+" TODO this is very time consuming, find out a better way to do it
+
+""" easytags configuration """
+" update tags asynchronously
+let g:easytags_async = 1
+" let g:easytags_include_members = 1
+" let g:easytags_autorecurse = 1
+" let g:easytags_always_enabled = 1
+let g:easytags_auto_highlight = 0
+" let g:easytags_opts = "-R --sort=yes --c-kinds=+p --fields=+S"
+
+" go to previous / next function name, not acolades
+" TODO doesn't work, for [[ it needs to find the first blank line upwards,
+" then go down the following line
+" map [[ [[kf(b
+" map ]] ]]kf(b
+
