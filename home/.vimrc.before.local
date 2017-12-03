@@ -1,0 +1,20 @@
+" Leader keys
+let g:spf13_leader='\'
+
+" Disable easier moving in tabs and windows
+let g:spf13_no_easyWindows = 1
+
+" Leave the default font and size in GVim
+" To set your own font, do it from ~/.vimrc.local
+let g:spf13_no_big_font = 1
+
+" list only the plugin groups I use
+let g:spf13_bundle_groups=['general', 'writing', 'neocomplete', 'programming', 'php', 'ruby', 'python', 'javascript', 'html', 'misc',]
+
+" Most prefer to automatically switch to the current file directory when
+" a new buffer is opened; to prevent this behavior, add the following to
+" your .vimrc.before.local file:
+let g:spf13_no_autochdir = 1
+
+" disable views because it always enables spelling
+let g:spf13_no_views = 1
