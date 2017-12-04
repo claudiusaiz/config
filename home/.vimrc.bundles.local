@@ -1,9 +1,19 @@
 UnBundle 'tacahiroy/ctrlp-funky'
+
 " not interested in buffers being displayed
 UnBundle 'bling/vim-bufferline'
+
+" neocomplete may interfere with youcompleteme
+UnBundle 'Shougo/neocomplete.vim.git'
 
 UnBundle 'easymotion/vim-easymotion'
 " TODO delete terryma/vim-multiple-cursors ?
 " TODO vim-airline bug: buffers are displayed on both the upper and lower bar
 
 let g:airline#extensions#tabline#enabled = 0
+
+Bundle 'valloric/youcompleteme'
+
+Bundle 'rdnetto/YCM-Generator'
+
+"Bundle 'plasticboy/vim-markdown'

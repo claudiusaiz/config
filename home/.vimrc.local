@@ -143,3 +143,90 @@ let g:spf13_no_autochdir = 1
 
 " disable views because it always enables spelling
 let g:spf13_no_views = 1
+
+" It's so frustrating to modify a file and then realize you don't have sudo...
+cmap w!! %!sudo tee > /dev/null %
+
+" youcompleteme: don't automatically trigger suggestions
+let g:ycm_auto_trigger = 0
+
+" show the current function declaration in the status bar when hitting \ + F
+function! ShowFuncName()
+    let lnum = line(".")
+    let col = col(".")
+    echohl ModeMsg
+    echo getline(search("^[^ \t#/]\\{2}.*[^:]\s*$", 'bW'))
+    echohl None
+    call search("\\%" . lnum . "l" . "\\%" . col . "c")
+endfun
+:nnoremap <Leader>F :call ShowFuncName()<CR>
+
+" map Space or z+Space to open the tag of the symbol in a vertical or
+" horizontal split
+nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
+nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
+
+" press \ + r to replace word
+:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+
+" function for expanding function call on multiple lines
+" @param[in] single_func_call If set to != 0, specifies if there is
+"                             a single function call on that line
+function! ExpandParams(single_func_call)
+    let l:commas = len(split(getline("."), ',', 1)) - 1
+
+    if a:single_func_call != 0
+        normal! 0
+    endif
+
+    " go to the first parameter and remember its position
+    normal! f(
+    let l:start_param_pos = col('.') + 1
+
+    let l:i = 0
+    while l:i < l:commas
+        " add newline after ,
+        execute "normal! f,a\n"
+
+        let l:crt_param_pos = col('.')
+        let l:diff = l:crt_param_pos - l:start_param_pos + 1
+
+        " cut or add white space
+        if l:diff > 0
+            " move cursor to position of 1st parameter
+            call cursor(0, l:start_param_pos)
+            " remove white spaces
+            execute "normal! ".l:diff."x"
+        elseif l:diff < 0
+            " add white spaces
+            let l:diff = l:diff * (-1)
+            execute "normal! yh".l:diff."p"
+        endif
+
+        let l:i += 1
+    endwhile
+endfun
+:nnoremap <Leader>E :call ExpandParams(1)<CR>
+:nnoremap <Leader><Leader>E :call ExpandParams(0)<CR>
+
+" show warning/error when going on a too big width
+":au BufWinEnter * let w:m1=matchadd('Search', '\%<90v.\%>94v', -1)
+":au BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>93v.\+', -1)
+function ShowLineMargin()
+    :match Search '\%<90v.\%>94v'
+    :match ErrorMsg '\%>93v.\+'
+endfunction
+function HideLineMargin()
+    :match none
+endfunction
+:nnoremap <Leader>M :call HideLineMargin()<CR>
+:nnoremap <Leader><Leader>M :call ShowLineMargin()<CR>
+
+function DeleteHiddenBuffers()
+    let tpbl=[]
+    call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
+    for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
+        silent execute 'bwipeout' buf
+    endfor
+endfunction
+
