@@ -14,9 +14,18 @@ enum
   ENTRY_EXISTS_DIFF_SIZE
 } entry_type = ENTRY_NEW;
 
-class A
+class SomeClass
 {
+  SomeClass() :
+      aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(),
+      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb()
+  {
+  }
 };
+
+void empty_func()
+{
+}
 
 static void some_func()
 {
@@ -36,7 +45,12 @@ static void some_func()
 
 int main()
 {
-  int aaa = 111111 + 22222 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 +
-            2 + 3 + 1 + 2 + 3 + 1 + 2 + 3;
+  int aaa =
+      111111 + 22222 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3 + 1 + 2 + 3;
+  /* reaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaly
+   * long comment */
+  bool value = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa + aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ==
+                   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa &&
+               aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa > ccccccccccccccccccccccccccccccccccccccccc;
   return 0;
 }
