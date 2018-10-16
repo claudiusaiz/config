@@ -10,10 +10,18 @@ UnBundle 'easymotion/vim-easymotion'
 " TODO delete terryma/vim-multiple-cursors ?
 " TODO vim-airline bug: buffers are displayed on both the upper and lower bar
 
+" this is broken
+UnBundle 'dracula/dracula-theme'
+
+" requests user and password now
+UnBundle 'amirh/HTML-AutoCloseTag'
+
 let g:airline#extensions#tabline#enabled = 0
 
 Bundle 'valloric/youcompleteme'
 
 Bundle 'rdnetto/YCM-Generator'
+
+Bundle 'vim-scripts/taglist.vim'
 
 "Bundle 'plasticboy/vim-markdown'

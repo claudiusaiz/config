@@ -1,8 +1,10 @@
-if has("gui_running")
-    color evening_2
-else
-    color evening
-endif
+"if has("gui_running")
+"    color solarized
+"else
+"    color evening
+"endif
+
+color evening
 
 " wrap lines
 set wrap
@@ -72,6 +74,7 @@ if has("cscope")
     " go back to where you were before the search.
     "
 
+    nmap <C-\>a :cs find a <C-R>=expand("<cword>")<CR><CR>
     nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>
     nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>
     nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>
@@ -148,7 +151,7 @@ let g:spf13_no_views = 1
 cmap w!! %!sudo tee > /dev/null %
 
 " youcompleteme: don't automatically trigger suggestions
-let g:ycm_auto_trigger = 0
+let g:ycm_auto_trigger = 1
 
 " show the current function declaration in the status bar when hitting \ + F
 function! ShowFuncName()
