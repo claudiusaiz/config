@@ -233,3 +233,51 @@ function DeleteHiddenBuffers()
     endfor
 endfunction
 
+function ReverseCondition(condition)
+    if a:condition == "==" || a:condition == "!="
+        return a:condition
+    elseif a:condition == ">"
+        return "<"
+    elseif a:condition == "<"
+        return ">"
+    elseif a:condition == ">="
+        return "<="
+    elseif a:condition == "<="
+        return ">="
+    endif
+endfunction
+
+" function for reversing yoda conditionals
+function! ReverseYoda()
+    let l:line = getline(".")
+
+    let l:constant = expand("<cword>")
+
+    " skip spaces
+    let l:index = col(".") + strlen(l:constant) - 1
+    while l:line[l:index : l:index] == " "
+        let l:index += 1
+    endwhile
+
+    " get comparison character - the length is the index of where the first
+    " alphanumerical character or space begins
+    let l:comparison_len = match(l:line[l:index : ], "[\a ]")
+    let l:comparison = l:line[l:index : l:index + l:comparison_len - 1]
+
+    " skip spaces
+    let l:index = l:index + l:comparison_len
+    while l:line[l:index : l:index] == " "
+        let l:index += 1
+    endwhile
+
+    " get expresion to check
+    let l:expr_len = match(l:line[l:index : ], "[ )]")
+    let l:expr = l:line[l:index : l:index + l:expr_len - 1]
+    let l:index = l:index + strlen(l:expr)
+
+    " compose final expresion and replace the line
+    let l:reverse_comparison = ReverseCondition(l:comparison)
+    let l:newline = l:line[0 : col(".") - 2].l:expr." ".ReverseCondition(l:comparison)." ".l:constant.l:line[l:index : ]
+    call setline('.', l:newline)
+endfun
+:nnoremap <Leader>y :call ReverseYoda()<CR>
