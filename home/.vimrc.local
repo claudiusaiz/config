@@ -1,10 +1,17 @@
-"if has("gui_running")
-"    color solarized
-"else
-"    color evening
-"endif
+function Rand()
+    return str2nr(matchstr(reltimestr(reltime()), '\v\.@<=\d+')[1:])
+endfunction
 
-color evening
+if has("gui_running")
+    " high contrast color schemes
+    let colors = ['candycode', 'desertink', 'flattr', 'fruity', 'fu', 'herald', 'hornet']
+
+    " choose a random value from the high contrast array
+    let color_ = colors[Rand() % (len(colors))]
+    exec 'color '.color_
+else
+    color evening
+endif
 
 " wrap lines
 set wrap
@@ -170,12 +177,12 @@ nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
 nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
 
 " press \ + r to replace word
-:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+":nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
 
 " function for expanding function call on multiple lines
 " @param[in] single_func_call If set to != 0, specifies if there is
 "                             a single function call on that line
-function! ExpandParams(single_func_call)
+function ExpandParams(single_func_call)
     let l:commas = len(split(getline("."), ',', 1)) - 1
 
     if a:single_func_call != 0
@@ -281,3 +288,18 @@ function! ReverseYoda()
     call setline('.', l:newline)
 endfun
 :nnoremap <Leader>y :call ReverseYoda()<CR>
+
+" rtags completion integration with neocomplete
+let g:neocomplete#enable_at_startup = 1
+function! SetupNeocompleteForCppWithRtags()
+    " Enable heavy omni completion.
+    setlocal omnifunc=RtagsCompleteFunc
+
+    if !exists('g:neocomplete#sources#omni#input_patterns')
+        let g:neocomplete#sources#omni#input_patterns = {}
+    endif
+    let l:cpp_patterns='[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+    let g:neocomplete#sources#omni#input_patterns.cpp = l:cpp_patterns
+    set completeopt+=longest,menuone
+endfunction
+autocmd FileType cpp,c call SetupNeocompleteForCppWithRtags()
