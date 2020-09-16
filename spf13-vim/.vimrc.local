@@ -1,3 +1,7 @@
+" Look & feel {{{
+" vim: set sw=4 ts=4 sts=4 et tw=78 foldlevel=0 foldmethod=marker spell:
+
+" Set a random theme {{{
 function Rand()
     return str2nr(matchstr(reltimestr(reltime()), '\v\.@<=\d+')[1:])
 endfunction
@@ -12,7 +16,9 @@ if has("gui_running")
 else
     color evening
 endif
+" }}}
 
+" Miscellaneous {{{
 " wrap lines
 set wrap
 
@@ -24,7 +30,14 @@ let g:spf13_no_fastTabs = 1
 if !has("gui_running")
     set nospell
 endif
+" }}}
 
+" }}}
+
+" Code indexing {{{
+
+" CSCOPE settings {{{
+"
 " This tests to see if vim was configured with the '--enable-cscope' option
 " when it was compiled.  If it wasn't, time to recompile vim...
 if has("cscope")
@@ -145,22 +158,68 @@ if has("cscope")
     "
     "set ttimeoutlen=100
 endif
+" }}}
 
-" Most prefer to automatically switch to the current file directory when
-" a new buffer is opened; to prevent this behavior, add the following to
-" your .vimrc.before.local file:
-let g:spf13_no_autochdir = 1
+" youcompleteme {{{
+" youcompleteme: don't automatically trigger suggestions
+let g:ycm_auto_trigger = 1
+" }}}
 
-" disable views because it always enables spelling
-let g:spf13_no_views = 1
+" neocomplete {{{
+" rtags completion integration with neocomplete
+" let g:neocomplete#enable_at_startup = 1
+" function! SetupNeocompleteForCppWithRtags()
+"     " Enable heavy omni completion.
+"     setlocal omnifunc=RtagsCompleteFunc
+" 
+"     if !exists('g:neocomplete#sources#omni#input_patterns')
+"         let g:neocomplete#sources#omni#input_patterns = {}
+"     endif
+"     let l:cpp_patterns='[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+"     let g:neocomplete#sources#omni#input_patterns.cpp = l:cpp_patterns
+"     set completeopt+=longest,menuone
+" endfunction
+" autocmd FileType cpp,c call SetupNeocompleteForCppWithRtags()
+" }}}
+
+" }}}
+
+" Behavior {{{
+" }}}
+
+" Utilities {{{
+
+" Miscellaneous {{{
 
 " It's so frustrating to modify a file and then realize you don't have sudo...
 cmap w!! %!sudo tee > /dev/null %
 
-" youcompleteme: don't automatically trigger suggestions
-let g:ycm_auto_trigger = 1
+" press \ + r to replace word
+:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
 
-" show the current function declaration in the status bar when hitting \ + F
+" map Space or z+Space to open the tag of the symbol in a vertical or
+" horizontal split
+nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
+nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
+
+" show warning/error when going on a too big width
+":au BufWinEnter * let w:m1=matchadd('Search', '\%<90v.\%>94v', -1)
+":au BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>93v.\+', -1)
+function ShowLineMargin()
+    :match Search '\%<90v.\%>94v'
+    :match ErrorMsg '\%>93v.\+'
+endfunction
+function HideLineMargin()
+    :match none
+endfunction
+:nnoremap <Leader>M :call HideLineMargin()<CR>
+:nnoremap <Leader><Leader>M :call ShowLineMargin()<CR>
+
+" }}}
+
+" C/C++ specific {{{
+
+" Show the current function declaration in the status bar when hitting \ + F {{{
 function! ShowFuncName()
     let lnum = line(".")
     let col = col(".")
@@ -171,13 +230,9 @@ function! ShowFuncName()
 endfun
 :nnoremap <Leader>F :call ShowFuncName()<CR>
 
-" map Space or z+Space to open the tag of the symbol in a vertical or
-" horizontal split
-nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
-nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
+" }}}
 
-" press \ + r to replace word
-:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+" Expand parameters in a function definition to one per line {{{
 
 " function for expanding function call on multiple lines
 " @param[in] single_func_call If set to != 0, specifies if there is
@@ -219,26 +274,9 @@ endfun
 :nnoremap <Leader>E :call ExpandParams(1)<CR>
 :nnoremap <Leader><Leader>E :call ExpandParams(0)<CR>
 
-" show warning/error when going on a too big width
-":au BufWinEnter * let w:m1=matchadd('Search', '\%<90v.\%>94v', -1)
-":au BufWinEnter * let w:m2=matchadd('ErrorMsg', '\%>93v.\+', -1)
-function ShowLineMargin()
-    :match Search '\%<90v.\%>94v'
-    :match ErrorMsg '\%>93v.\+'
-endfunction
-function HideLineMargin()
-    :match none
-endfunction
-:nnoremap <Leader>M :call HideLineMargin()<CR>
-:nnoremap <Leader><Leader>M :call ShowLineMargin()<CR>
+" }}}
 
-function DeleteHiddenBuffers()
-    let tpbl=[]
-    call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
-    for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
-        silent execute 'bwipeout' buf
-    endfor
-endfunction
+" Reverse Yoda conditions - a.k.a if (NULL == a) becomes if (a == NULL) {{{
 
 function ReverseCondition(condition)
     if a:condition == "==" || a:condition == "!="
@@ -289,30 +327,20 @@ function! ReverseYoda()
 endfun
 :nnoremap <Leader>y :call ReverseYoda()<CR>
 
-" rtags completion integration with neocomplete
-let g:neocomplete#enable_at_startup = 1
-function! SetupNeocompleteForCppWithRtags()
-    " Enable heavy omni completion.
-    setlocal omnifunc=RtagsCompleteFunc
+" }}}
 
-    if !exists('g:neocomplete#sources#omni#input_patterns')
-        let g:neocomplete#sources#omni#input_patterns = {}
-    endif
-    let l:cpp_patterns='[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
-    let g:neocomplete#sources#omni#input_patterns.cpp = l:cpp_patterns
-    set completeopt+=longest,menuone
-endfunction
-autocmd FileType cpp,c call SetupNeocompleteForCppWithRtags()
-
+" Doxygen {{{
 " configurations for vim-scripts/DoxygenToolkit.vim plugin
 let g:DoxygenToolkit_commentType = "C++"
 let g:DoxygenToolkit_briefTag_pre="\\brief "
 let g:DoxygenToolkit_paramTag_pre="\\param "
 let g:DoxygenToolkit_returnTag="\\return "
-"let g:DoxygenToolkit_licenseTag="Copyright (C) 2020 Avira - All Rights Reserved"
 
 " press \ + d to generate doxygen comment
 :nnoremap <Leader>d :Dox<CR>
+" }}}
+
+" Insert block into an if condition {{{
 
 " function for putting a visual block inside an if
 function! InsertInIf()
@@ -352,5 +380,23 @@ endfun
 " press \ + i to put the current block inside an if
 :nnoremap <Leader>i :call InsertInIf()<CR>
 
+" }}}
+
+" }}}
+
+" }}}
+
+" VIM Utilities {{{
+
+function DeleteHiddenBuffers()
+    let tpbl=[]
+    call map(range(1, tabpagenr('$')), 'extend(tpbl, tabpagebuflist(v:val))')
+    for buf in filter(range(1, bufnr('$')), 'bufexists(v:val) && index(tpbl, v:val)==-1')
+        silent execute 'bwipeout' buf
+    endfor
+endfunction
+
 " ignore W11 - file X has changed since editing started
 set autoread
+
+" }}}
