@@ -177,7 +177,7 @@ nmap <Space> :vert stag <C-R>=expand("<cword>")<CR><CR>
 nmap z<Space> :stag <C-R>=expand("<cword>")<CR><CR>
 
 " press \ + r to replace word
-":nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
 
 " function for expanding function call on multiple lines
 " @param[in] single_func_call If set to != 0, specifies if there is
@@ -303,3 +303,54 @@ function! SetupNeocompleteForCppWithRtags()
     set completeopt+=longest,menuone
 endfunction
 autocmd FileType cpp,c call SetupNeocompleteForCppWithRtags()
+
+" configurations for vim-scripts/DoxygenToolkit.vim plugin
+let g:DoxygenToolkit_commentType = "C++"
+let g:DoxygenToolkit_briefTag_pre="\\brief "
+let g:DoxygenToolkit_paramTag_pre="\\param "
+let g:DoxygenToolkit_returnTag="\\return "
+"let g:DoxygenToolkit_licenseTag="Copyright (C) 2020 Avira - All Rights Reserved"
+
+" press \ + d to generate doxygen comment
+:nnoremap <Leader>d :Dox<CR>
+
+" function for putting a visual block inside an if
+function! InsertInIf()
+    let l:start_line = line(".")
+
+    " find first }
+    let l:next_closing_bracket_line = search("}", "nW")
+    if l:next_closing_bracket_line == 0
+        let l:next_closing_bracket_line = l:start_line
+    endif
+
+    " find first empty line
+    execute "normal mq}"
+    let l:next_newline_line = line(".")
+    execute "normal `q"
+
+    " this is the final line which will be covered by the if
+    let l:final_line = l:next_closing_bracket_line
+    if l:next_newline_line < l:next_closing_bracket_line
+        let l:final_line = l:next_newline_line
+    endif
+
+    " cut lines
+    let l:lines_to_move = l:final_line - l:start_line
+    execute ":".l:start_line."d".l:lines_to_move
+
+    " insert if statement and paste the cut lines inside it
+    execute "normal Oif ()\n{\n}\<esc>P"
+
+    " indent the previously cut lines
+    execute "normal >".l:lines_to_move.">"
+
+    " move cursor to if
+    let l:tmp = search("if", "b")
+endfun
+
+" press \ + i to put the current block inside an if
+:nnoremap <Leader>i :call InsertInIf()<CR>
+
+" ignore W11 - file X has changed since editing started
+set autoread
