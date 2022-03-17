@@ -162,8 +162,17 @@ endif
 
 " youcompleteme {{{
 " youcompleteme: don't automatically trigger suggestions
-let g:ycm_auto_trigger = 1
+" let g:ycm_auto_trigger = 0
 " }}}
+
+" rtags {{{
+" Use QuickFix window (shared between all windows) instead of location lists (local to the window)
+let g:rtagsUseLocationList = 0
+" }}}
+
+" deoplete {{{
+let g:deoplete#enable_at_startup = 1
+"" }}}
 
 " neocomplete {{{
 " rtags completion integration with neocomplete
@@ -194,8 +203,8 @@ let g:ycm_auto_trigger = 1
 " It's so frustrating to modify a file and then realize you don't have sudo...
 cmap w!! %!sudo tee > /dev/null %
 
-" press \ + r to replace word
-:nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
+" press \ + R to replace word
+:nnoremap <Leader>R :%s/\<<C-r><C-w>\>/<C-r><C-w>
 
 " map Space or z+Space to open the tag of the symbol in a vertical or
 " horizontal split
