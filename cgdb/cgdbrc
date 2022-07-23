@@ -1,0 +1,3 @@
+# gdb recently added colors by default, which are not shown correctly in cgdb
+# anyway, with gdb -tui, cgdb is kind of useless
+set style enabled off
