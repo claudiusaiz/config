@@ -22,3 +22,6 @@ let g:spf13_no_views = 1
 " To disable the stripping of whitespace, add the following to your
 " .vimrc.before.local file:
 let g:spf13_keep_trailing_whitespace = 1
+
+" Enable normal line motion keys behavior
+let g:spf13_no_wrapRelMotion = 1
